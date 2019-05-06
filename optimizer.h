@@ -2,13 +2,25 @@
 // Created by Robbie on 5/3/2019.
 //
 
-#ifndef ML_SPRING19_PROJECT_OPTIMIZER_H
-#define ML_SPRING19_PROJECT_OPTIMIZER_H
+#ifndef OPTIMIZER_H
+#define OPTIMIZER_H
 
+
+#include "./OpenNN/matrix.h"
+
+using namespace std;
+using namespace OpenNN;
 
 class Optimizer {
-void update(int)
+    double eps = 1.0e-8;
+    double learning_rate, b1, b2;
+    bool initialized = false;
+    Matrix<double> m,v;
+public:
+    Optimizer();
+    Optimizer(double, double, double);
+    Matrix<double> update(Matrix<double>*,Matrix<double>*);
 };
 
 
-#endif //ML_SPRING19_PROJECT_OPTIMIZER_H
+#endif //OPTIMIZER_H
