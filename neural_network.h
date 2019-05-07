@@ -20,7 +20,7 @@ using namespace OpenNN;
 using namespace std;
 
 class NeuralNetwork {
-    Optimizer* optimizer;
+    Optimizer optimizer;
     Loss* loss_function;
     Matrix<double> errors; // 0 is training, 1 is validation
     //skipping progress bar
@@ -30,7 +30,7 @@ public:
     int batch_size = 0;
     int output_dim;
     vector<Layer*> layers;
-    NeuralNetwork(Optimizer*, Loss*);
+    NeuralNetwork(Optimizer, Loss*);
     void set_trainable(bool);
     void add(Layer*);
     double test_on_batch(Matrix<double>*, Matrix<double>*);

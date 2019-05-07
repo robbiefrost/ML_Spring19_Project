@@ -6,7 +6,7 @@
 #include <string>
 
 
-NeuralNetwork::NeuralNetwork(Optimizer* optimizer, Loss* loss_function) {
+NeuralNetwork::NeuralNetwork(Optimizer optimizer, Loss* loss_function) {
     this->optimizer = optimizer;
     this->loss_function = loss_function;
 }
@@ -17,7 +17,7 @@ void NeuralNetwork::set_trainable(bool trainable) {
 }
 void NeuralNetwork::add(Layer* layer) {
     if (!this->layers.empty()) {
-        layer->set_input_shape(this->layers.back()->output_shape()); // needs parameters
+        layer->set_input_shape(this->layers.back()->output_shape());
     }
     if (layer->layer_name() == "Dense" || layer->layer_name() == "BatchNormalization")
         layer->initialize(this->optimizer);

@@ -158,6 +158,7 @@ namespace OpenNN {
         void set_MPI(const MPI_Datatype);
 #endif
 
+        const size_t& get_size() const;
         T get_first() const;
         T get_last() const;
         T get_before_last() const;
@@ -705,6 +706,8 @@ namespace OpenNN {
 
         Vector<T> get_subvector_random(const size_t&) const;
 
+
+
         Vector<T> get_first(const size_t &) const;
 
         Vector<T> get_last(const size_t &) const;
@@ -1142,6 +1145,11 @@ template <class T> void Vector<T>::set_MPI(const MPI_Datatype mpi_datatype) {
 }
 #endif
 
+    template <class T>
+    const size_t& Vector<T>::get_size() const
+    {
+        return(this->size());
+    }
 
     template <class T>
     T Vector<T>::get_first() const

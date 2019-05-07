@@ -7,6 +7,7 @@
 
 #include <string>
 #include "optimizer.h"
+#include "activation_function.h"
 #include "./OpenNN/matrix.h"
 #include "./OpenNN/vector.h"
 
@@ -18,51 +19,58 @@ typedef pair<int, int> shape;
 class Layer {
 public:
     shape input_shape;
-    bool trainable = true;
+    bool trainable;
     void set_input_shape(shape);
     virtual string layer_name();
     virtual int parameters();
-    virtual void initialize(Optimizer*);
-    virtual Matrix<double> forward_pass(Matrix<double>* X, bool);
-    virtual Matrix<double>* backward_pass(Matrix<double>*, int);
+    virtual void initialize(Optimizer optimizer);
+    virtual Matrix<double> forward_pass(Matrix<double> *X, bool training);
+    virtual void backward_pass(Matrix<double> *accum_grad, int index);
     virtual shape output_shape();
 };
 class Dense:Layer {
     string name = "Dense";
     int n_units;
     Matrix<double> layer_input;
-    Matrix<double> W;
-    Matrix<double> w0;
-    Optimizer W_opt;
-    Optimizer w0_opt;
+    Matrix<double> W, w0;
+    Optimizer W_opt, w0_opt;
 public:
     Dense(int, shape);
     string layer_name() override;
     int parameters() override;
-    void initialize(Optimizer*) override;
-    Matrix<double> forward_pass(Matrix<double>* X, bool) override;
-    Matrix<double>* backward_pass(Matrix<double>*, int) override;
+    void initialize(Optimizer optimizer) override;
+    Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
+    void backward_pass(Matrix<double> *accum_grad, int index) override;
     shape output_shape() override;
 };
 class Activation:Layer {
     string name = "Activation";
+    string function_name;
+    ActivationFunction activation_function;
     Matrix<double> layer_input;
 public:
+    Activation(string);
     string layer_name() override;
     int parameters() override;
-    void initialize(Optimizer*) override;
-    Matrix<double> forward_pass(Matrix<double>* X, bool) override;
-    Matrix<double>* backward_pass(Matrix<double>*, int) override;
+    void initialize(Optimizer optimizer) override;
+    Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
+    void backward_pass(Matrix<double> *accum_grad, int index) override;
     shape output_shape() override;
 };
 class BatchNormalization:Layer {
     string name = "BatchNormalization";
+    bool initialized;
+    double momentum, epsilon;
+    Vector<double> running_mean, running_var, stddev_inv;
+    Matrix<double> gamma, beta, X_centered;
+    Optimizer gamma_opt, beta_opt;
 public:
+    BatchNormalization(double);
     string layer_name() override;
     int parameters() override;
-    void initialize(Optimizer*) override;
-    Matrix<double> forward_pass(Matrix<double>* X, bool) override;
-    Matrix<double>* backward_pass(Matrix<double>*, int) override;
+    void initialize(Optimizer optimizer) override;
+    Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
+    void backward_pass(Matrix<double> *accum_grad, int index) override;
     shape output_shape() override;
 };
 

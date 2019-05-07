@@ -479,6 +479,7 @@ namespace OpenNN
         // Mathematical methods
 
         T calculate_sum() const;
+        Matrix<T> calculate_sqrt() const;
 
         Vector<int> calculate_rows_sum_int() const;
         Vector<T> calculate_rows_sum() const;
@@ -499,6 +500,8 @@ namespace OpenNN
 
         Vector<double> calculate_mean() const;
         double calculate_mean(const size_t&) const;
+
+        Vector<double> calculate_variance() const;
 
         Vector<double> calculate_mean(const Vector<size_t>&) const;
 
@@ -746,7 +749,11 @@ namespace OpenNN
 
         Matrix<T> operator - (const Matrix<T>&) const;
 
+        Matrix<T> operator - (const Vector<T>&) const;
+
         Matrix<T> operator * (const T&) const;
+
+        Matrix<T> operator * (const Vector<T>&) const;
 
         Matrix<T> operator * (const Matrix<T>&) const;
 
@@ -771,6 +778,8 @@ namespace OpenNN
         void operator /= (const T&);
 
         void operator /= (const Matrix<T>&);
+
+        Matrix<double> calculate_exp() const;
 
         Vector<double> dot(const Vector<double>&) const;
 
@@ -6443,6 +6452,22 @@ namespace OpenNN
     }
 
 
+/// Product matrix*scalar arithmetic operator.
+/// @param scalar Scalar value to be multiplied to this matrix.
+
+    template <class T>
+    Matrix<T> Matrix<T>::calculate_sqrt() const
+    {
+        Matrix<T> sqrt(rows_number, columns_number);
+
+        for(size_t i = 0; i < this->size(); i++)
+        {
+            sqrt[i] = sqrt((*this)[i]);
+        }
+
+        return(sqrt);
+    }
+
 
 /// Returns the sum of all the elements in the matrix.
 
@@ -7034,6 +7059,23 @@ namespace OpenNN
         }
 
         return(mean);
+    }
+
+/// Returns a vector with variance values of all the matrix columns.
+/// The size is equal to the number of columns in the matrix.
+
+    template <class T>
+    Vector<double> Matrix<T>::calculate_variance() const
+    {
+
+        Vector<double> variance(columns_number, 0.0);
+
+        for(size_t i = 0; i < columns_number; i++)
+        {
+            variance[i] = get_column(i).calculate_variance();
+        }
+
+        return variance;
     }
 
 
@@ -12138,6 +12180,24 @@ namespace OpenNN
         return(difference);
     }
 
+/// Difference matrix-vector arithmetic operator.
+/// subtracts vector element-wirse from each row of this matrix
+/// @param other_vector Vector to be subtracted to this matrix.
+
+    template <class T>
+    Matrix<T> Matrix<T>::operator -(const Vector<T>& other_vector) const
+    {
+
+        Matrix<T> difference(rows_number, columns_number);
+
+        for(size_t i = 0; i < rows_number; i++)
+        {
+            difference.set_row(i, get_row(i) - other_vector);
+        }
+
+
+        return(difference);
+    }
 
 /// Difference matrix-matrix arithmetic operator.
 /// @param other_matrix Matrix to be subtracted to this matrix.
@@ -12189,6 +12249,24 @@ namespace OpenNN
         return(product);
     }
 
+/// Product matrix*vector arithmetic operator.
+/// multiplies other_vector by each row of this matrix
+/// @param other_vector Vector to be multiplied to this matrix.
+
+    template <class T>
+    Matrix<T> Matrix<T>::operator *(const Vector<T>& other_vector) const
+    {
+
+        Matrix<T> product(rows_number, columns_number);
+
+        for(size_t i = 0; i < rows_number; i++)
+        {
+            product.set_row(i, get_row(i) * other_vector);
+        }
+
+
+        return(product);
+    }
 
 /// Product matrix*matrix arithmetic operator.
 /// @param other_matrix Matrix to be multiplied to this matrix.
@@ -12546,6 +12624,21 @@ namespace OpenNN
     }
 
 
+/// Elementwise exp function.
+
+    template <class T>
+    Matrix<double> Matrix<T>::calculate_exp() const
+    {
+        Matrix<T> exp(rows_number, columns_number);
+
+        for(size_t i = 0; i < this->size(); i++)
+        {
+            exp[i] = exp((*this)[i]);
+        }
+
+        return(exp);
+    }
+
 /// Returns the dot product of this matrix with a vector.
 /// The size of the vector must be equal to the number of columns of the matrix.
 /// @param vector Vector to be multiplied to this matrix.
@@ -12576,21 +12669,21 @@ namespace OpenNN
 
         Vector<double> product(rows_number);
 
-//   for(int i = 0; i < static_cast<int>(rows_number); i++)
-//   {
-//       product[i] = 0;
+   for(int i = 0; i < static_cast<int>(rows_number); i++)
+   {
+       product[i] = 0;
 
-//      for(size_t j = 0; j < columns_number; j++)
-//      {
-//         product[i] += vector[j]*(*this)(i,j);
-//      }
-//   }
+      for(size_t j = 0; j < columns_number; j++)
+      {
+         product[i] += vector[j]*(*this)(i,j);
+      }
+   }
 
-        const Eigen::Map<Eigen::MatrixXd> matrix_eigen((double*)this->data(), rows_number, columns_number);
-        const Eigen::Map<Eigen::VectorXd> vector_eigen((double*)vector.data(), columns_number);
-        Eigen::Map<Eigen::VectorXd> product_eigen(product.data(), rows_number);
-
-        product_eigen = matrix_eigen*vector_eigen;
+//        const Eigen::Map<Eigen::MatrixXd> matrix_eigen((double*)this->data(), rows_number, columns_number);
+//        const Eigen::Map<Eigen::VectorXd> vector_eigen((double*)vector.data(), columns_number);
+//        Eigen::Map<Eigen::VectorXd> product_eigen(product.data(), rows_number);
+//
+//        product_eigen = matrix_eigen*vector_eigen;
 
         return(product);
     }

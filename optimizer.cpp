@@ -20,13 +20,14 @@ Optimizer::Optimizer(double learning_rate, double b1, double b2) {
 Matrix<double> Optimizer::update(Matrix<double>* w, Matrix<double>* grad_wrt_w) {
     if (!initialized) {
         initialized = true;
-
+        this->m.set(grad_wrt_w->get_rows_number(), grad_wrt_w->get_columns_number(), 0);
+        this->v.set(grad_wrt_w->get_rows_number(), grad_wrt_w->get_columns_number(), 0);
     }
-    m = m * b1 + *grad_wrt_w * (1 - b1);
-    v = v * b2 + (*grad_wrt_w * *grad_wrt_w) * (1 - b2);
+    this->m = this->m * this->b1 + *grad_wrt_w * (1 - this->b1);
+    this->v = this->v * this->b2 + (*grad_wrt_w * *grad_wrt_w) * (1 - this->b2);
 
-    auto m_hat = m / (1 - b1);
-    auto v_hat = v / (1 - b2);
+    auto m_hat = this->m / (1 - this->b1);
+    auto v_hat = this->v / (1 - this->b2);
 
-    return *w - ((m_hat * learning_rate) / sqrt(v_hat) + eps);
+    return *w - ((m_hat * learning_rate) / (v_hat.calculate_sqrt() + eps));
 }
