@@ -21,12 +21,12 @@ public:
     Shape input_shape;
     bool trainable;
     void set_input_shape(Shape);
-    virtual string layer_name();
-    virtual int parameters();
-    virtual void initialize(Optimizer optimizer);
-    virtual Matrix<double> forward_pass(Matrix<double> *X, bool training);
-    virtual void backward_pass(Matrix<double> *accum_grad, int index);
-    virtual Shape output_shape();
+    virtual string layer_name()=0;
+    virtual int parameters()=0;
+    virtual void initialize(Optimizer optimizer)=0;
+    virtual Matrix<double> forward_pass(Matrix<double> *X, bool training)=0;
+    virtual void backward_pass(Matrix<double> *accum_grad, int index)=0;
+    virtual Shape output_shape()=0;
 };
 class Dense: public Layer {
     string name = "Dense";
@@ -49,7 +49,7 @@ class Activation: public Layer {
     ActivationFunction* activation_function;
     Matrix<double> layer_input;
 public:
-    Activation(string);
+    explicit Activation(string);
     string layer_name() override;
     int parameters() override;
     void initialize(Optimizer optimizer) override;
@@ -65,7 +65,7 @@ class BatchNormalization: public Layer {
     Matrix<double> gamma, beta, X_centered;
     Optimizer gamma_opt, beta_opt;
 public:
-    BatchNormalization(double);
+    explicit BatchNormalization(double);
     string layer_name() override;
     int parameters() override;
     void initialize(Optimizer optimizer) override;

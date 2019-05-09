@@ -6,29 +6,31 @@
 #define ML_SPRING19_PROJECT_ACTIVATION_FUNCTION_H
 
 #include "./OpenNN/matrix.h"
-#include "./OpenNN/vector.h"
 
 using namespace std;
 using namespace OpenNN;
 
-struct ActivationFunction {
-    virtual inline Matrix<double> function(Matrix <double> *x);
-    virtual Matrix<double> gradient(Matrix <double> *x);
+class ActivationFunction {
+public:
+    virtual Matrix<double> function(Matrix <double> *x)=0;
+    virtual Matrix<double> gradient(Matrix <double> *x)=0;
 };
-struct Sigmoid : ActivationFunction {
-    inline Matrix<double> function(Matrix <double> *x) override;
+class Sigmoid : public ActivationFunction {
+public:
+    Matrix<double> function(Matrix <double> *x) override;
     Matrix<double> gradient(Matrix <double> *x) override;
 };
-struct TanH : ActivationFunction {
-    inline Matrix<double> function(Matrix <double> *x) override;
+class TanH : public ActivationFunction {
+public:
+    Matrix<double> function(Matrix <double> *x) override;
     Matrix<double> gradient(Matrix <double> *x) override;
 };
-struct LeakyReLU : ActivationFunction {
+class LeakyReLU : public ActivationFunction {
 private:
     double alpha=0.2;
 public:
 //    LeakyReLU(double alpha);
-    inline Matrix<double> function(Matrix <double> *x) override;
+    Matrix<double> function(Matrix <double> *x) override;
     Matrix<double> gradient(Matrix <double> *x) override;
 };
 

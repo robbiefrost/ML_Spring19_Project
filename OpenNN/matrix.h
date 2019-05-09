@@ -32,6 +32,10 @@
 
 using namespace std;
 
+#define trace(input) do { if (1) { cout << input << endl; } } while(0)
+#define here() do { cout << "  here" << endl; } while (0)
+#define there() do { cout << "  there" << endl; } while (0)
+
 namespace OpenNN
 {
 
@@ -479,7 +483,7 @@ namespace OpenNN
         // Mathematical methods
 
         T calculate_sum() const;
-        Matrix<T> calculate_sqrt() const;
+        Matrix<double> calculate_sqrt() const;
 
         Vector<int> calculate_rows_sum_int() const;
         Vector<T> calculate_rows_sum() const;
@@ -1018,7 +1022,6 @@ namespace OpenNN
     {
         rows_number = 0;
         columns_number = 0;
-
         load_csv(file_name, separator, header);
 
     }
@@ -6458,16 +6461,17 @@ namespace OpenNN
 /// @param scalar Scalar value to be multiplied to this matrix.
 
     template <class T>
-    Matrix<T> Matrix<T>::calculate_sqrt() const
+    Matrix<double> Matrix<T>::calculate_sqrt() const
     {
-        Matrix<T> sqrt(rows_number, columns_number);
+        Matrix<double> square(rows_number, columns_number);
 
         for(size_t i = 0; i < this->size(); i++)
         {
-            sqrt[i] = sqrt((*this)[i]);
+            square[i] = (*this)[i];
+            square[i] = sqrt(square[i]);
         }
 
-        return(sqrt);
+        return(square);
     }
 
 
@@ -12631,14 +12635,15 @@ namespace OpenNN
     template <class T>
     Matrix<double> Matrix<T>::calculate_exp() const
     {
-        Matrix<T> exp(rows_number, columns_number);
+        Matrix<T> exponential(rows_number, columns_number);
 
         for(size_t i = 0; i < this->size(); i++)
         {
-            exp[i] = exp((*this)[i]);
+            exponential[i] = (*this)[i];
+            exponential[i] = exp(exponential[i]);
         }
 
-        return(exp);
+        return(exponential);
     }
 
 /// Elementwise exp function.
@@ -15262,32 +15267,28 @@ Matrix<double> Matrix<T>::dot(const Vector< Matrix<double> >& vector_matrix) con
     template <class T>
     void Matrix<T>::load_csv(const string& file_name, const char& delim, const bool& has_header)
     {
-        ifstream file(file_name.c_str());
-
+        ifstream file(file_name);
         if(!file.is_open())
         {
             ostringstream buffer;
 
-            buffer << "OpenNN Exception: Matrix template.\n"
+            cout << "OpenNN Exception: Matrix template.\n"
                    << "void load_csv(const string&,const char&) method.\n"
                    << "Cannot open matrix data file: " << file_name << "\n";
 
             throw logic_error(buffer.str());
         }
-
         if(file.peek() == ifstream::traits_type::eof())
         {
             set();
 
             return;
         }
-
         // Set matrix sizes
 
         string line;
 
         getline(file, line);
-
         if(line.empty())
         {
             set();
@@ -15295,7 +15296,6 @@ Matrix<double> Matrix<T>::dot(const Vector< Matrix<double> >& vector_matrix) con
         else
         {
             istringstream buffer(line);
-
             string token;
 
             vector<string> results;
@@ -15308,7 +15308,6 @@ Matrix<double> Matrix<T>::dot(const Vector< Matrix<double> >& vector_matrix) con
             const size_t new_columns_number = static_cast<size_t>(results.size());
 
             size_t new_rows_number = 1;
-
             while(file.good())
             {
                 getline(file, line);
@@ -15352,7 +15351,6 @@ Matrix<double> Matrix<T>::dot(const Vector< Matrix<double> >& vector_matrix) con
                     header[j] = token;
                 }
             }
-
             for(size_t i = 0; i < rows_number; i++)
             {
                 getline(file, line);
@@ -15367,7 +15365,7 @@ Matrix<double> Matrix<T>::dot(const Vector< Matrix<double> >& vector_matrix) con
 
                     getline(buffer, token, delim);
 
-                    (*this)(i,j) = token;
+                    (*this)(i,j) = stod(token);
 
                     //buffer >> (*this)(i,j);
                 }
@@ -15375,7 +15373,6 @@ Matrix<double> Matrix<T>::dot(const Vector< Matrix<double> >& vector_matrix) con
         }
 
         // Close file
-
         file.close();
     }
 

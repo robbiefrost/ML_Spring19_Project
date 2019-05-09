@@ -4,6 +4,10 @@
 
 #include "layer.h"
 
+#define trace(input) do { if (1) { cout << input << endl; } } while(0)
+#define here() do { cout << "  here" << endl; } while (0)
+#define there() do { cout << "  there" << endl; } while (0)
+
 void Layer::set_input_shape(Shape input_shape) {
     this->input_shape = input_shape;
 }
@@ -47,7 +51,7 @@ void Dense::backward_pass(Matrix<double> *accum_grad, int index) {
     *accum_grad = accum_grad->dot(W.calculate_transpose());
 }
 Shape Dense::output_shape() {
-    return Shape (this->n_units, 0);
+    return Shape (this->n_units, 1);
 }
 
 
@@ -116,7 +120,7 @@ Matrix<double> BatchNormalization::forward_pass(Matrix<double> *X, bool training
     }
     // stats to save for backward pass
     this->X_centered = *X - mean; // element-wise matrix minus row vector: each row of X gets the mean subtracted
-    this->stddev_inv = Vector<double>(var.get_size(), 1) / (var + this->epsilon).calculate_square_root_elements();
+    this->stddev_inv = Vector<double>(var.size(), 1) / (var + this->epsilon).calculate_square_root_elements();
 
     auto X_norm = this->X_centered * this->stddev_inv; // element-wise matrix vector multiplication, yields vector
     return this->gamma * X_norm + this->beta;

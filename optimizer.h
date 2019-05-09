@@ -5,7 +5,6 @@
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
 
-
 #include "./OpenNN/matrix.h"
 
 using namespace std;

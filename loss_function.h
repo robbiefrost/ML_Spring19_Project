@@ -10,24 +10,24 @@
 using namespace std;
 using namespace OpenNN;
 
-struct Loss {
-    virtual Matrix<double> loss(Matrix<double>*, Matrix<double>*);
-    virtual Matrix<double> gradient(Matrix<double>*, Matrix<double>*);
-    virtual Matrix<double> acc(Matrix<double>*, Matrix<double>*);
+class Loss {
+public:
+    virtual Matrix<double> loss(Matrix<double>*, Matrix<double>*)=0;
+    virtual Matrix<double> gradient(Matrix<double>*, Matrix<double>*)=0;
+    virtual Matrix<double> acc(Matrix<double>*, Matrix<double>*)=0;
 };
-
-struct SquareLoss:Loss {
-    SquareLoss();
+class SquareLoss: public Loss {
+public:
     Matrix<double> loss(Matrix<double>*, Matrix<double>*) override;
     Matrix<double> gradient(Matrix<double>*, Matrix<double>*) override;
     Matrix<double> acc(Matrix<double>*, Matrix<double>*) override;
 };
-struct CrossEntropy:Loss {
-    CrossEntropy();
-    Matrix<double> loss(Matrix<double>*, Matrix<double>*) override;
-    Matrix<double> gradient(Matrix<double>*, Matrix<double>*) override;
-    Matrix<double> acc(Matrix<double>*, Matrix<double>*) override;
-};
+//class CrossEntropy: public Loss {
+//public:
+//    Matrix<double> loss(Matrix<double>*, Matrix<double>*) override;
+//    Matrix<double> gradient(Matrix<double>*, Matrix<double>*) override;
+//    Matrix<double> acc(Matrix<double>*, Matrix<double>*) override;
+//};
 
 
 #endif //ML_SPRING19_PROJECT_LOSS_FUNCTION_H
