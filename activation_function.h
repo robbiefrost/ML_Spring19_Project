@@ -12,19 +12,23 @@ using namespace std;
 using namespace OpenNN;
 
 struct ActivationFunction {
-    virtual inline Matrix<double> operator()(Matrix <double> *x);
+    virtual inline Matrix<double> function(Matrix <double> *x);
     virtual Matrix<double> gradient(Matrix <double> *x);
 };
 struct Sigmoid : ActivationFunction {
-    inline Matrix<double> operator()(Matrix <double> *x) override;
+    inline Matrix<double> function(Matrix <double> *x) override;
     Matrix<double> gradient(Matrix <double> *x) override;
 };
 struct TanH : ActivationFunction {
-    inline Matrix<double> operator()(Matrix <double> *x) override;
+    inline Matrix<double> function(Matrix <double> *x) override;
     Matrix<double> gradient(Matrix <double> *x) override;
 };
 struct LeakyReLU : ActivationFunction {
-    inline Matrix<double> operator()(Matrix <double> *x) override;
+private:
+    double alpha=0.2;
+public:
+//    LeakyReLU(double alpha);
+    inline Matrix<double> function(Matrix <double> *x) override;
     Matrix<double> gradient(Matrix <double> *x) override;
 };
 

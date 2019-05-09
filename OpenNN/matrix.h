@@ -780,6 +780,8 @@ namespace OpenNN
         void operator /= (const Matrix<T>&);
 
         Matrix<double> calculate_exp() const;
+        Matrix<double> calculate_leaky_relu(const double &alpha) const;
+        Matrix<double> calculate_leaky_relu_gradient(const double &alpha) const;
 
         Vector<double> dot(const Vector<double>&) const;
 
@@ -12637,6 +12639,40 @@ namespace OpenNN
         }
 
         return(exp);
+    }
+
+/// Elementwise exp function.
+
+    template <class T>
+    Matrix<double> Matrix<T>::calculate_leaky_relu(const double &alpha) const {
+        Matrix<double> leaky_relu(rows_number, columns_number);
+
+        for(size_t i = 0; i < this->size(); i++)
+        {
+            if ((this)[i] >= 0)
+                leaky_relu[i] = (*this)[i];
+            else
+                leaky_relu[i] = (*this)[i]*alpha;
+        }
+
+        return(leaky_relu);
+    }
+
+/// Elementwise exp function.
+
+    template <class T>
+    Matrix<double> Matrix<T>::calculate_leaky_relu_gradient(const double &alpha) const {
+        Matrix<double> leaky_relu(rows_number, columns_number);
+
+        for(size_t i = 0; i < this->size(); i++)
+        {
+            if ((this)[i] >= 0)
+                leaky_relu[i] = 1;
+            else
+                leaky_relu[i] = alpha;
+        }
+
+        return(leaky_relu);
     }
 
 /// Returns the dot product of this matrix with a vector.

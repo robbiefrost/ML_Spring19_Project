@@ -61,5 +61,15 @@ void NeuralNetwork::_backward_pass(Matrix<double>* loss_grad){
         this->layers[i]->backward_pass(loss_grad, i);
 }
 void NeuralNetwork::summary(string name) {
-
+    cout << name << endl;
+    cout << "Input Shape: (" << this->layers[0]->input_shape.first << ", " << this->layers[0]->input_shape.second << ")" << endl;
+    cout << setw(20) << "| Layer type" << "| Parameters" << "| Output Shape |" << endl;
+    int total_params = 0;
+    for (auto layer : this->layers) {
+        cout << setw(20) << layer->layer_name()
+            << setw(10) << layer->parameters()
+            << setw(10) << "(" << layer->input_shape.first << "," << layer->input_shape.second << ")" << endl;
+        total_params += layer->parameters();
+    }
+    cout << "Total Parameters: " << total_params << endl << endl;
 }

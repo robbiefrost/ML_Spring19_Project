@@ -17,25 +17,55 @@ class Autoencoder {
     int img_cols = 28;
     int img_dim = img_rows * img_cols;
     int latent_dim = 32;
-    Optimizer* optimizer;
-    Loss* loss_function;
+    Optimizer optimizer;
+    Loss *loss_function;
 //    loss_function = new SquareLoss();
     NeuralNetwork* autoencoder;
 
-    NeuralNetwork build_encoder(Optimizer* optimizer, Loss* loss_function) {
+    NeuralNetwork build_encoder(Optimizer optimizer, Loss* loss_function) {
         NeuralNetwork encoder(optimizer, loss_function);
-//        encoder.add(Dense())
+        Dense* dense1 = new Dense(512, Shape(this->img_dim, 0));
+        Activation* act1 = new Activation("leaky_relu");
+        BatchNormalization* batch1 = new BatchNormalization(0.8);
+        Dense* dense2 = new Dense(256, Shape(0, 0));
+        Activation* act2 = new Activation("leaky_relu");
+        BatchNormalization* batch2 = new BatchNormalization(0.8);
+        Dense* dense3 = new Dense(this->latent_dim, Shape(this->img_dim, 0));
+        encoder.add(dense1);
+        encoder.add(act1);
+        encoder.add(batch1);
+        encoder.add(dense2);
+        encoder.add(act2);
+        encoder.add(batch2);
+        encoder.add(dense3);
+        return encoder;
     }
-    NeuralNetwork build_decoder(Optimizer* optimizer, Loss* loss_function) {
+    NeuralNetwork build_decoder(Optimizer optimizer, Loss* loss_function) {
         NeuralNetwork decoder(optimizer, loss_function);
+        Dense* dense1 = new Dense(256, Shape(this->latent_dim, 0));
+        Activation* act1 = new Activation("leaky_relu");
+        BatchNormalization* batch1 = new BatchNormalization(0.8);
+        Dense* dense2 = new Dense(512, Shape(0, 0));
+        Activation* act2 = new Activation("leaky_relu");
+        BatchNormalization* batch2 = new BatchNormalization(0.8);
+        Dense* dense3 = new Dense(this->img_dim, Shape(0, 0));
+        Activation* act3 = new Activation("tanh");
+        decoder.add(dense1);
+        decoder.add(act1);
+        decoder.add(batch1);
+        decoder.add(dense2);
+        decoder.add(act2);
+        decoder.add(batch2);
+        decoder.add(dense3);
+        decoder.add(act3);
+        return decoder;
     }
     void save_images(int epoch, Matrix<double>* X) {
 
     }
 public:
     Autoencoder() {
-        optimizer = new Optimizer();
-        loss_function = new SquareLoss();
+        this->loss_function = new SquareLoss();
         NeuralNetwork encoder = this->build_encoder(optimizer, loss_function);
         NeuralNetwork decoder = this->build_decoder(optimizer, loss_function);
         autoencoder = new NeuralNetwork(optimizer, loss_function);

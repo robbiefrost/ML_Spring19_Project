@@ -10,22 +10,19 @@
 using namespace std;
 using namespace OpenNN;
 
-class Loss {
-public:
-    Loss();
+struct Loss {
     virtual Matrix<double> loss(Matrix<double>*, Matrix<double>*);
     virtual Matrix<double> gradient(Matrix<double>*, Matrix<double>*);
     virtual Matrix<double> acc(Matrix<double>*, Matrix<double>*);
 };
 
-class SquareLoss:Loss {
-public:
+struct SquareLoss:Loss {
     SquareLoss();
     Matrix<double> loss(Matrix<double>*, Matrix<double>*) override;
     Matrix<double> gradient(Matrix<double>*, Matrix<double>*) override;
     Matrix<double> acc(Matrix<double>*, Matrix<double>*) override;
 };
-class CrossEntropy:Loss {
+struct CrossEntropy:Loss {
     CrossEntropy();
     Matrix<double> loss(Matrix<double>*, Matrix<double>*) override;
     Matrix<double> gradient(Matrix<double>*, Matrix<double>*) override;

@@ -14,39 +14,39 @@
 using namespace std;
 using namespace OpenNN;
 
-typedef pair<int, int> shape;
+typedef pair<int, int> Shape;
 
 class Layer {
 public:
-    shape input_shape;
+    Shape input_shape;
     bool trainable;
-    void set_input_shape(shape);
+    void set_input_shape(Shape);
     virtual string layer_name();
     virtual int parameters();
     virtual void initialize(Optimizer optimizer);
     virtual Matrix<double> forward_pass(Matrix<double> *X, bool training);
     virtual void backward_pass(Matrix<double> *accum_grad, int index);
-    virtual shape output_shape();
+    virtual Shape output_shape();
 };
-class Dense:Layer {
+class Dense: public Layer {
     string name = "Dense";
     int n_units;
     Matrix<double> layer_input;
     Matrix<double> W, w0;
     Optimizer W_opt, w0_opt;
 public:
-    Dense(int, shape);
+    Dense(int, Shape);
     string layer_name() override;
     int parameters() override;
     void initialize(Optimizer optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
-    shape output_shape() override;
+    Shape output_shape() override;
 };
-class Activation:Layer {
+class Activation: public Layer {
     string name = "Activation";
     string function_name;
-    ActivationFunction activation_function;
+    ActivationFunction* activation_function;
     Matrix<double> layer_input;
 public:
     Activation(string);
@@ -55,9 +55,9 @@ public:
     void initialize(Optimizer optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
-    shape output_shape() override;
+    Shape output_shape() override;
 };
-class BatchNormalization:Layer {
+class BatchNormalization: public Layer {
     string name = "BatchNormalization";
     bool initialized;
     double momentum, epsilon;
@@ -71,7 +71,7 @@ public:
     void initialize(Optimizer optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
-    shape output_shape() override;
+    Shape output_shape() override;
 };
 
 #endif //ML_SPRING19_PROJECT_LAYER_H

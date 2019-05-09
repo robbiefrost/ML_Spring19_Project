@@ -4,12 +4,12 @@
 
 #include "layer.h"
 
-void Layer::set_input_shape(shape input_shape) {
+void Layer::set_input_shape(Shape input_shape) {
     this->input_shape = input_shape;
 }
 
 
-Dense::Dense(int n_units, shape input_shape) {
+Dense::Dense(int n_units, Shape input_shape) {
     this->input_shape = input_shape;
     this->n_units = n_units;
 }
@@ -46,8 +46,8 @@ void Dense::backward_pass(Matrix<double> *accum_grad, int index) {
     }
     *accum_grad = accum_grad->dot(W.calculate_transpose());
 }
-shape Dense::output_shape() {
-    return shape (this->n_units, 0);
+Shape Dense::output_shape() {
+    return Shape (this->n_units, 0);
 }
 
 
@@ -69,12 +69,12 @@ int Activation::parameters() {
 }
 Matrix<double> Activation::forward_pass(Matrix<double> *X, bool training) {
     this->layer_input = *X;
-    return this->activation_function(X);
+    return this->activation_function->function(X);
 }
 void Activation::backward_pass(Matrix<double> *accum_grad, int index) {
-    *accum_grad = *accum_grad * this->activation_function.gradient(&layer_input);
+    *accum_grad = *accum_grad * this->activation_function->gradient(&layer_input);
 }
-shape Activation::output_shape() {
+Shape Activation::output_shape() {
     return this->input_shape;
 }
 void Activation::initialize(Optimizer optimizer) {}
@@ -141,6 +141,6 @@ void BatchNormalization::backward_pass(Matrix<double> *accum_grad, int index) {
                 * (*accum_grad * this->X_centered).calculate_columns_sum())
             );
 }
-shape BatchNormalization::output_shape() {
+Shape BatchNormalization::output_shape() {
     return this->input_shape;
 }
