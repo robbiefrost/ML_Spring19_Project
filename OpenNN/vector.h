@@ -162,6 +162,7 @@ namespace OpenNN {
         T get_first() const;
         T get_last() const;
         T get_before_last() const;
+        vector<T> get_underlying() const;
 
         // Initialization methods
 
@@ -10269,29 +10270,30 @@ Vector<size_t> Vector<T>::calculate_histogram_outliers_iterative(const size_t& b
     template <class T>
     void Vector<T>::print_unique() const
     {
-        const size_t this_size = this->size();
-
-        const Vector<T> unique = get_unique_elements();
-
-        const Vector<size_t> count = count_unique();
-
-        const Vector<double> percentage = count_unique().to_double_vector()*(100.0/static_cast<double>(this_size));
-
-        const size_t unique_size = unique.size();
-
-        Matrix<T> unique_matrix(unique_size, 3);
-        unique_matrix.set_column(0, unique.to_string_vector());
-        unique_matrix.set_column(1, count.to_string_vector());
-        unique_matrix.set_column(2, percentage.to_string_vector());
-
-        unique_matrix = unique_matrix.sort_descending_strings(1);
-
-        cout << "Total: " << this_size << endl;
-
-        for(size_t i = 0; i < unique_size; i++)
-        {
-            cout << unique_matrix(i,0) << ": " << unique_matrix(i,1) << " (" <<  unique_matrix(i,2) << "%)" << endl;
-        }
+//        const size_t this_size = this->size();
+//
+//        const Vector<T> unique = get_unique_elements();
+//
+//        const Vector<size_t> count = count_unique();
+//
+//        const Vector<double> percentage = count_unique().to_double_vector()*(100.0/static_cast<double>(this_size));
+//
+//        const size_t unique_size = unique.size();
+//
+//        Matrix<T> unique_matrix(unique_size, 3);
+//        unique_matrix.set_column(0, unique.to_string_vector());
+//        unique_matrix.set_column(1, count.to_string_vector());
+//        unique_matrix.set_column(2, percentage.to_string_vector());
+//
+//        unique_matrix = unique_matrix.sort_descending_strings(1);
+//
+//        cout << "Total: " << this_size << endl;
+//
+//        for(size_t i = 0; i < unique_size; i++)
+//        {
+//            cout << unique_matrix(i,0) << ": " << unique_matrix(i,1) << " (" <<  unique_matrix(i,2) << "%)" << endl;
+//        }
+        cout << endl << *this << endl << endl;
     }
 
 

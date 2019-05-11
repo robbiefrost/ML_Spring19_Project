@@ -745,15 +745,17 @@ namespace OpenNN
 
         void filter(const T&, const T&);
 
-        Matrix<T> operator + (const T&) const;
+        Matrix<T> operator + (const T& scalar) const;
+
+        Matrix<T> operator + (const Vector<T>&) const;
 
         Matrix<T> operator + (const Matrix<T>&) const;
 
         Matrix<T> operator - (const T& scalar) const;
 
-        Matrix<T> operator - (const Matrix<T>&) const;
-
         Matrix<T> operator - (const Vector<T>&) const;
+
+        Matrix<T> operator - (const Matrix<T>&) const;
 
         Matrix<T> operator * (const T&) const;
 
@@ -12138,6 +12140,23 @@ namespace OpenNN
         return(sum);
     }
 
+/// Difference matrix-vector arithmetic operator.
+/// subtracts vector element-wirse from each row of this matrix
+/// @param other_vector Vector to be subtracted to this matrix.
+
+    template <class T>
+    Matrix<T> Matrix<T>::operator + (const Vector<T>& other_vector) const
+    {
+
+        Matrix<T> addition(rows_number, columns_number);
+
+        for(size_t i = 0; i < rows_number; i++)
+        {
+            addition.set_row(i, get_row(i) + other_vector);
+        }
+
+        return(addition);
+    }
 
 /// Sum matrix+matrix arithmetic operator.
 /// @param other_matrix Matrix to be added to this vector.
@@ -12256,7 +12275,7 @@ namespace OpenNN
     }
 
 /// Product matrix*vector arithmetic operator.
-/// multiplies other_vector by each row of this matrix
+/// multiplies each row of this matrix by other_vector
 /// @param other_vector Vector to be multiplied to this matrix.
 
     template <class T>
@@ -12395,10 +12414,11 @@ namespace OpenNN
 
         Matrix<T> cocient(rows_number, columns_number);
 
-        for(size_t i = 0; i < rows_number; i++)
+        for(size_t i = 0; i < this->size(); i++)
         {
             cocient[i] = (*this)[i]/other_matrix[i];
         }
+
 
         return(cocient);
     }
@@ -12651,15 +12671,13 @@ namespace OpenNN
     template <class T>
     Matrix<double> Matrix<T>::calculate_leaky_relu(const double &alpha) const {
         Matrix<double> leaky_relu(rows_number, columns_number);
-
         for(size_t i = 0; i < this->size(); i++)
         {
-            if ((this)[i] >= 0)
+            if ((*this)[i] >= 0)
                 leaky_relu[i] = (*this)[i];
             else
                 leaky_relu[i] = (*this)[i]*alpha;
         }
-
         return(leaky_relu);
     }
 
@@ -12671,7 +12689,7 @@ namespace OpenNN
 
         for(size_t i = 0; i < this->size(); i++)
         {
-            if ((this)[i] >= 0)
+            if ((*this)[i] >= 0)
                 leaky_relu[i] = 1;
             else
                 leaky_relu[i] = alpha;

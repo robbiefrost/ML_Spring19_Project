@@ -38,6 +38,7 @@ public:
     Matrix<double> _forward_pass(Matrix<double>*, bool);
     void _backward_pass(Matrix<double>*);
     void summary(string);
+    Matrix<double> predict(Matrix<double> *X);
 };
 
 

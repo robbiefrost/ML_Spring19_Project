@@ -35,15 +35,11 @@ void NeuralNetwork::add(Layer* layer) {
 //    return loss.calculate_mean().calculate_mean();
 //}
 double NeuralNetwork::train_on_batch(Matrix<double>* X, Matrix<double>* y) {
-    trace(2);
     Matrix<double> y_pred = this->_forward_pass(X, true);
-    trace(2);
+//    y_pred.print_preview();
     auto loss = this->loss_function->loss(y, &y_pred);
-    trace(2);
     auto loss_grad = this->loss_function->gradient(y, &y_pred);
-    trace(2);
     this->_backward_pass(&loss_grad);
-    trace(2);
     //can add in acc if needed
     return loss.calculate_mean().calculate_mean();
 }
@@ -62,13 +58,25 @@ double NeuralNetwork::train_on_batch(Matrix<double>* X, Matrix<double>* y) {
 //}
 Matrix<double> NeuralNetwork::_forward_pass(Matrix<double>* X, bool training) {
     Matrix<double> layer_output = *X;
-    for (auto layer : this->layers)
-        layer_output = layer->forward_pass(&layer_output, training);
+    int i = 0;
+    for (auto layer : this->layers) {
+//        trace(endl<<endl<<i++ << ": " << layer->layer_name());
+//        trace("  in (" << layer_output.get_rows_number() << "," << layer_output.get_columns_number() << ")");
+        layer_output.set(layer->forward_pass(&layer_output, training));
+//        layer_output.print_preview();
+//        trace("  out(" << layer_output.get_rows_number() << "," << layer_output.get_columns_number() << ")");
+    }
     return layer_output;
 }
 void NeuralNetwork::_backward_pass(Matrix<double>* loss_grad){
-    for (int i = this->layers.size()-1; i>=0; i--)
-        this->layers[i]->backward_pass(loss_grad, i);
+    int i = 0;
+    for (auto it = this->layers.rbegin(); it != this->layers.rend(); it++) {
+//        trace(i << ": " << (*it)->layer_name());
+//        trace("  in (" << loss_grad->get_rows_number() << "," << loss_grad->get_columns_number() << ")");
+        (*it)->backward_pass(loss_grad, i);
+        i++;
+//        trace("  out(" << loss_grad->get_rows_number() << "," << loss_grad->get_columns_number() << ")");
+    }
 }
 void NeuralNetwork::summary(string name) {
     cout << name << endl;
@@ -78,8 +86,11 @@ void NeuralNetwork::summary(string name) {
     for (auto layer : this->layers) {
         cout << left  << "| " << layer->layer_name() << setw(25-layer->layer_name().size()) << " "
             << "| " << setw(13) << layer->parameters()
-            << "| " << "(" << layer->input_shape.first << "," << layer->input_shape.second << ")" << endl;
+            << "| " << "(" << layer->output_shape().first << "," << layer->output_shape().second << ")" << endl;
         total_params += layer->parameters();
     }
     cout << endl << "Total Parameters: " << total_params << endl << endl;
+}
+Matrix<double> NeuralNetwork::predict(Matrix<double> *X) {
+    return this->_forward_pass(X, false);
 }

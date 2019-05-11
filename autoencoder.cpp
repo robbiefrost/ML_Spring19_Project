@@ -3,6 +3,7 @@
 //
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include "./OpenNN/matrix.h"
 #include "./OpenNN/vector.h"
 #include "optimizer.h"
@@ -25,6 +26,8 @@ class Autoencoder {
     Optimizer optimizer;
     Loss *loss_function;
     NeuralNetwork* autoencoder;
+    Matrix<double> X ;
+    Matrix<double> testX;
 
     NeuralNetwork build_encoder(Optimizer optimizer, Loss* loss_function) {
         NeuralNetwork *encoder = new NeuralNetwork(optimizer, loss_function);
@@ -64,11 +67,35 @@ class Autoencoder {
         decoder.add(act3);
         return decoder;
     }
-    void save_images(int epoch, Matrix<double>* X) {
+    void save_images(int epoch) {
+        int rows = 5;
+        Vector<size_t> index_vector(0,1,this->testX.get_rows_number());
+        auto images = this->testX.get_submatrix_rows(index_vector.get_subvector_random(rows*rows));
+        auto gen_images = this->autoencoder->predict(&images);
+//        images.print_preview();
+//        gen_images.print_preview();
+        gen_images = (gen_images * -127.5) + 127.5;
+//        gen_images.print_preview();
+
+        string file_name = "../image_predictions/ae_" + to_string(epoch) + ".pgm";
+        ofstream image_file(file_name, ofstream::out | ofstream::trunc);
+        if (image_file.is_open()) {
+            image_file << "P2\r\n";
+            image_file << this->img_rows << " " << this->img_cols << "\r\n";
+            image_file << "255\r\n";
+            auto image = gen_images.get_row(0);
+            for (int i = 0; i< this->img_dim-1; i+=this->img_rows) {
+                image_file << image.get_subvector(i, i+this->img_cols-1) << "\r\n";
+            }
+            image_file.close();
+        }
+
 
     }
 public:
-    Autoencoder() {
+    Autoencoder(Matrix<double> X, Matrix<double> testX) {
+        this->X = X;
+        this->testX = testX;
         this->loss_function = new SquareLoss();
         NeuralNetwork encoder = this->build_encoder(this->optimizer, this->loss_function);
         NeuralNetwork decoder = this->build_decoder(this->optimizer, this->loss_function);
@@ -81,23 +108,16 @@ public:
 
     void train(int n_epochs, int batch_size, int save_interval) {
         this->autoencoder->batch_size = batch_size;
-        trace("Loading MNIST data..."<<endl);
-        Matrix<double> train_data("../mnist_train.csv", ',', true);
-        Matrix<double> test_data("../mnist_test.csv", ',', true);
-        Matrix<double> X = train_data.get_submatrix_columns(Vector<size_t>(1,1,train_data.get_columns_number()-1));
-        Matrix<double> testX = test_data.get_submatrix_columns(Vector<size_t>(1,1,test_data.get_columns_number()-1));
-        X = (X - 127.5) / 127.5;
-        testX = (testX - 127.5) / 127.5;
-        Vector<size_t> index_vector(0,1,X.get_rows_number());
+        this->X = (this->X - 127.5) / 127.5;
+        this->testX = (this->testX - 127.5) / 127.5;
+        Vector<size_t> index_vector(0,1,this->X.get_rows_number());
         for (int epoch = 0; epoch<n_epochs; epoch++) {
-            Matrix<double> random_batch = X.get_submatrix_rows(index_vector.get_subvector_random(batch_size));
-            trace(1);
+//            index_vector.get_subvector_random(batch_size).print_unique();
+            auto random_batch = this->X.get_submatrix_rows(index_vector.get_subvector_random(batch_size));
             auto loss = this->autoencoder->train_on_batch(&random_batch, &random_batch);
-            trace(1);
-            cout << epoch << "[D loss: " << setprecision(6) << loss << "]"<<endl;
-            trace(1);
+            cout << epoch << " [D loss: " << setprecision(6) << loss << "]"<<endl;
             if (epoch % save_interval == 0)
-                this->save_images(epoch, &testX);
+                this->save_images(epoch);
         }
     }
 
@@ -105,6 +125,12 @@ public:
 
 
 int main (int argc, char **argv) {
-    Autoencoder ae;
+    trace("Loading MNIST data..."<<endl);
+    Matrix<double> train_data("../mnist_train.csv", ',', true);
+    Matrix<double> test_data("../mnist_test.csv", ',', true);
+    Matrix<double> X = train_data.get_submatrix_columns(Vector<size_t>(1,1,train_data.get_columns_number()-1));
+    Matrix<double> testX = test_data.get_submatrix_columns(Vector<size_t>(1,1,test_data.get_columns_number()-1));
+
+    Autoencoder ae(X, testX);
     ae.train(200000, 128, 40);
 }
