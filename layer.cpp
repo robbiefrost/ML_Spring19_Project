@@ -12,17 +12,31 @@ void Layer::set_input_shape(Shape input_shape) {
     this->input_shape = input_shape;
 }
 
-Dense::Dense(int n_units, Shape input_shape) {
-    this->input_shape = input_shape;
+Dense::Dense(int n_units, Shape input_shape, bool first_layer, bool latent_layer) {
     this->n_units = n_units;
+    this->input_shape = input_shape;
+    this->first_layer = first_layer;
+    this->latent_layer = latent_layer;
 }
-void Dense::initialize(Optimizer optimizer) {
-    double limit = 1.0 / sqrt(input_shape.first);
+Dense::Dense(int n_units, Shape input_shape) {
+    Dense(n_units, input_shape, false, false);
+}
+Dense::Dense(int n_units) {
+    Dense(n_units, Shape(1, 1), false, false);
+}
+void Dense::initialize(string optimizer) {
+    this->trainable = true;
+    double limit = 1.0 / sqrt(this->input_shape.first);
     this->W.set(this->input_shape.first, this->n_units);
     this->W.randomize_uniform(-1.0*limit, limit);
     this->w0.set(1, this->n_units, 0);
-    this->W_opt = optimizer;
-    this->w0_opt = optimizer;
+    if (optimizer == "adam") {
+        this->W_opt = new Adam();
+        this->w0_opt = new Adam();
+    } else if (optimizer == "adadelta"){
+        this->W_opt = new Adadelta();
+        this->w0_opt = new Adadelta();
+    }
 }
 string Dense::layer_name() {
     return this->name;
@@ -47,8 +61,8 @@ void Dense::backward_pass(Matrix<double> *accum_grad, int index) {
         auto grad_w0(this->w0);
         grad_w0.set_column(0, accum_grad->calculate_columns_sum());
         // update layer weights
-        this->W = this->W_opt.update(&this->W, &grad_W);
-        this->w0 = this->w0_opt.update(&this->w0, &grad_w0);
+        this->W = this->W_opt->update(&this->W, &grad_W);
+        this->w0 = this->w0_opt->update(&this->w0, &grad_w0);
     }
     *accum_grad = accum_grad->dot(W.calculate_transpose());
 }
@@ -83,7 +97,7 @@ void Activation::backward_pass(Matrix<double> *accum_grad, int index) {
 Shape Activation::output_shape() {
     return this->input_shape;
 }
-void Activation::initialize(Optimizer optimizer) {}
+void Activation::initialize(string optimizer) {}
 
 
 BatchNormalization::BatchNormalization(double momentum) {
@@ -92,11 +106,16 @@ BatchNormalization::BatchNormalization(double momentum) {
     this->trainable = true;
     this->initialized = false;
 }
-void BatchNormalization::initialize(Optimizer optimizer) {
+void BatchNormalization::initialize(string optimizer) {
     this->gamma.set(this->input_shape.first, this->input_shape.second, 1);
     this->beta.set(this->input_shape.first, this->input_shape.second, 0);
-    this->gamma_opt = optimizer;
-    this->beta_opt = optimizer;
+    if (optimizer == "adam") {
+        this->gamma_opt = new Adam();
+        this->beta_opt = new Adam();
+    } else if (optimizer == "adadelta"){
+        this->gamma_opt = new Adadelta();
+        this->beta_opt = new Adadelta();
+    }
 }
 string BatchNormalization::layer_name() {
     return this->name;
@@ -150,9 +169,8 @@ void BatchNormalization::backward_pass(Matrix<double> *accum_grad, int index) {
 //        trace("    grad_gamma (" << grad_gamma.get_rows_number() << "," << grad_gamma.get_columns_number() << ")");
 //        trace("    gamma      (" << this->gamma.get_rows_number() << "," << this->gamma.get_columns_number() << ")");
         grad_beta.set_column(0, accum_grad->calculate_columns_sum());
-
-        this->gamma = this->gamma_opt.update(&this->gamma, &grad_gamma);
-        this->beta = this ->beta_opt.update(&this->beta, &grad_beta);
+        this->gamma = this->gamma_opt->update(&this->gamma, &grad_gamma);
+        this->beta = this ->beta_opt->update(&this->beta, &grad_beta);
     }
     int batch_size = accum_grad->get_rows_number();
 //    trace("    accum_grad (" << accum_grad->get_rows_number() << "," << accum_grad->get_columns_number() << ")");

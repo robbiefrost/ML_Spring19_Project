@@ -22,47 +22,49 @@ class Autoencoder {
     int img_rows = 28;
     int img_cols = 28;
     int img_dim = img_rows * img_cols;
-    int latent_dim = 32;
-    Optimizer optimizer;
+    int latent_dim = 128;
+
+    string optimizer;
     Loss *loss_function;
     NeuralNetwork* autoencoder;
+
     Matrix<double> X ;
     Matrix<double> testX;
 
-    NeuralNetwork build_encoder(Optimizer optimizer, Loss* loss_function) {
+    NeuralNetwork build_encoder(string optimizer, Loss *loss_function) {
         NeuralNetwork *encoder = new NeuralNetwork(optimizer, loss_function);
-        Dense* dense1 = new Dense(512, Shape(this->img_dim, 1));
+        Dense* dense1 = new Dense(512, Shape(this->img_dim, 1), true, false);
         Activation* act1 = new Activation("leaky_relu");
-        BatchNormalization* batch1 = new BatchNormalization(0.8);
-        Dense* dense2 = new Dense(256, Shape(1, 1));
+//        BatchNormalization* batch1 = new BatchNormalization(0.8);
+        Dense* dense2 = new Dense(256);
         Activation* act2 = new Activation("leaky_relu");
-        BatchNormalization* batch2 = new BatchNormalization(0.8);
-        Dense* dense3 = new Dense(this->latent_dim, Shape(this->img_dim, 0));
+//        BatchNormalization* batch2 = new BatchNormalization(0.8);
+        Dense* dense3 = new Dense(this->latent_dim, Shape(this->img_dim, 1), false, true);
         encoder->add(dense1);
         encoder->add(act1);
-        encoder->add(batch1);
+//        encoder->add(batch1);
         encoder->add(dense2);
         encoder->add(act2);
-        encoder->add(batch2);
+//        encoder->add(batch2);
         encoder->add(dense3);
         return *encoder;
     }
-    NeuralNetwork build_decoder(Optimizer optimizer, Loss* loss_function) {
+    NeuralNetwork build_decoder(string optimizer, Loss *loss_function) {
         NeuralNetwork decoder(optimizer, loss_function);
         Dense* dense1 = new Dense(256, Shape(this->latent_dim, 1));
         Activation* act1 = new Activation("leaky_relu");
-        BatchNormalization* batch1 = new BatchNormalization(0.8);
-        Dense* dense2 = new Dense(512, Shape(1, 1));
+//        BatchNormalization* batch1 = new BatchNormalization(0.8);
+        Dense* dense2 = new Dense(512);
         Activation* act2 = new Activation("leaky_relu");
-        BatchNormalization* batch2 = new BatchNormalization(0.8);
-        Dense* dense3 = new Dense(this->img_dim, Shape(1, 1));
+//        BatchNormalization* batch2 = new BatchNormalization(0.8);
+        Dense* dense3 = new Dense(this->img_dim);
         Activation* act3 = new Activation("tanh");
         decoder.add(dense1);
         decoder.add(act1);
-        decoder.add(batch1);
+//        decoder.add(batch1);
         decoder.add(dense2);
         decoder.add(act2);
-        decoder.add(batch2);
+//        decoder.add(batch2);
         decoder.add(dense3);
         decoder.add(act3);
         return decoder;
@@ -97,6 +99,7 @@ public:
         this->X = X;
         this->testX = testX;
         this->loss_function = new SquareLoss();
+        this->optimizer = "adadelta";
         NeuralNetwork encoder = this->build_encoder(this->optimizer, this->loss_function);
         NeuralNetwork decoder = this->build_decoder(this->optimizer, this->loss_function);
         autoencoder = new NeuralNetwork(this->optimizer, this->loss_function);

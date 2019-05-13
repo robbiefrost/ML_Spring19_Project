@@ -5,14 +5,18 @@
 #include "activation_function.h"
 
 Matrix<double> Sigmoid::function(Matrix<double> *x) {
-    return Matrix<double>(x->get_rows_number(), x->get_columns_number(), 1.0) / ((*x * -1.0).calculate_exp());
+    Matrix<double> ones(x->get_rows_number(), x->get_columns_number(), 1.0);
+    auto exp_X = (*x * -1.0).calculate_exp();
+    return ones / (exp_X + 1);
 }
 Matrix<double> Sigmoid::gradient(Matrix<double> *x) {
-    return this->function(x) * ((this->function(x)* -1.0) + 1);
+    auto sig = this->function(x);
+    return sig * ((sig * -1.0) + 1);
 }
 Matrix<double> TanH::function(Matrix<double> *x) {
     Matrix<double> twos(x->get_rows_number(), x->get_columns_number(), 2.0);
-    return (twos / ((*x * -2.0).calculate_exp() + 1)) - 1;
+    auto exp_X = (*x * -2.0).calculate_exp();
+    return (twos / (exp_X + 1)) - 1;
 }
 Matrix<double> TanH::gradient(Matrix<double> *x) {
     auto tanh = this->function(x);

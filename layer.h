@@ -23,7 +23,7 @@ public:
     void set_input_shape(Shape);
     virtual string layer_name()=0;
     virtual int parameters()=0;
-    virtual void initialize(Optimizer optimizer)=0;
+    virtual void initialize(string optimizer)=0;
     virtual Matrix<double> forward_pass(Matrix<double> *X, bool training)=0;
     virtual void backward_pass(Matrix<double> *accum_grad, int index)=0;
     virtual Shape output_shape()=0;
@@ -31,14 +31,17 @@ public:
 class Dense: public Layer {
     string name = "Dense";
     int n_units;
+    bool first_layer, latent_layer;
     Matrix<double> layer_input;
     Matrix<double> W, w0;
-    Optimizer W_opt, w0_opt;
+    Optimizer *W_opt, *w0_opt;
 public:
-    Dense(int, Shape);
+    Dense(int n_units, Shape, bool first_layer, bool latent_layer);
+    Dense(int n_units, Shape input_shape);
+    Dense(int n_units);
     string layer_name() override;
     int parameters() override;
-    void initialize(Optimizer optimizer) override;
+    void initialize(string optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
     Shape output_shape() override;
@@ -52,7 +55,7 @@ public:
     explicit Activation(string);
     string layer_name() override;
     int parameters() override;
-    void initialize(Optimizer optimizer) override;
+    void initialize(string optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
     Shape output_shape() override;
@@ -63,12 +66,12 @@ class BatchNormalization: public Layer {
     double momentum, epsilon;
     Vector<double> running_mean, running_var, stddev_inv;
     Matrix<double> gamma, beta, X_centered;
-    Optimizer gamma_opt, beta_opt;
+    Optimizer *gamma_opt, *beta_opt;
 public:
     explicit BatchNormalization(double);
     string layer_name() override;
     int parameters() override;
-    void initialize(Optimizer optimizer) override;
+    void initialize(string optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
     Shape output_shape() override;

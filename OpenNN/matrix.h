@@ -12666,7 +12666,7 @@ namespace OpenNN
         return(exponential);
     }
 
-/// Elementwise exp function.
+/// Elementwise leaky relu
 
     template <class T>
     Matrix<double> Matrix<T>::calculate_leaky_relu(const double &alpha) const {
@@ -12681,7 +12681,7 @@ namespace OpenNN
         return(leaky_relu);
     }
 
-/// Elementwise exp function.
+/// Elementwise leaky relu
 
     template <class T>
     Matrix<double> Matrix<T>::calculate_leaky_relu_gradient(const double &alpha) const {
@@ -12728,21 +12728,21 @@ namespace OpenNN
 
         Vector<double> product(rows_number);
 
-   for(int i = 0; i < static_cast<int>(rows_number); i++)
-   {
-       product[i] = 0;
-
-      for(size_t j = 0; j < columns_number; j++)
-      {
-         product[i] += vector[j]*(*this)(i,j);
-      }
-   }
-
-//        const Eigen::Map<Eigen::MatrixXd> matrix_eigen((double*)this->data(), rows_number, columns_number);
-//        const Eigen::Map<Eigen::VectorXd> vector_eigen((double*)vector.data(), columns_number);
-//        Eigen::Map<Eigen::VectorXd> product_eigen(product.data(), rows_number);
+//   for(int i = 0; i < static_cast<int>(rows_number); i++)
+//   {
+//       product[i] = 0;
 //
-//        product_eigen = matrix_eigen*vector_eigen;
+//      for(size_t j = 0; j < columns_number; j++)
+//      {
+//         product[i] += vector[j]*(*this)(i,j);
+//      }
+//   }
+
+        const Eigen::Map<Eigen::MatrixXd> matrix_eigen((double*)this->data(), rows_number, columns_number);
+        const Eigen::Map<Eigen::VectorXd> vector_eigen((double*)vector.data(), columns_number);
+        Eigen::Map<Eigen::VectorXd> product_eigen(product.data(), rows_number);
+
+        product_eigen = matrix_eigen*vector_eigen;
 
         return(product);
     }
@@ -12777,25 +12777,24 @@ namespace OpenNN
 
         Matrix<T> product(rows_number, other_columns_number);
 
-   for(size_t i = 0; i < rows_number; i++)
-   {
-     for(size_t j = 0; j < other_columns_number; j++)
-     {
-       for(size_t k = 0; k < columns_number; k++)
-       {
-            product(i,j) += (*this)(i,k)*other_matrix(k,j);
-       }
-     }
-   }
+//   for(size_t i = 0; i < rows_number; i++)
+//   {
+//     for(size_t j = 0; j < other_columns_number; j++)
+//     {
+//       for(size_t k = 0; k < columns_number; k++)
+//       {
+//            product(i,j) += (*this)(i,k)*other_matrix(k,j);
+//       }
+//     }
+//   }
+        const Eigen::Map<Eigen::MatrixXd> this_eigen((double*)this->data(), rows_number, columns_number);
+        const Eigen::Map<Eigen::MatrixXd> other_eigen((double*)other_matrix.data(), other_rows_number, other_columns_number);
+        Eigen::Map<Eigen::MatrixXd> product_eigen(product.data(), rows_number, other_columns_number);
+
+        product_eigen = this_eigen*other_eigen;
+
+
         return(product);
-//        const Eigen::Map<Eigen::MatrixXd> this_eigen((double*)this->data(), rows_number, columns_number);
-//        const Eigen::Map<Eigen::MatrixXd> other_eigen((double*)other_matrix.data(), other_rows_number, other_columns_number);
-//        Eigen::Map<Eigen::MatrixXd> product_eigen(product.data(), rows_number, other_columns_number);
-//
-//        product_eigen = this_eigen*other_eigen;
-//
-//
-//        return(product_eigen);
     }
 
 
