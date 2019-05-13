@@ -39,7 +39,7 @@ class Autoencoder {
         Dense* dense2 = new Dense(256);
         Activation* act2 = new Activation("leaky_relu");
 //        BatchNormalization* batch2 = new BatchNormalization(0.8);
-        Dense* dense3 = new Dense(this->latent_dim, Shape(this->img_dim, 1), false, true);
+        Dense* dense3 = new Dense(this->latent_dim, Shape(this->img_dim, 0), false, true);
         encoder->add(dense1);
         encoder->add(act1);
 //        encoder->add(batch1);

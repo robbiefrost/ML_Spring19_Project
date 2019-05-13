@@ -26,6 +26,8 @@ public:
     virtual void initialize(string optimizer)=0;
     virtual Matrix<double> forward_pass(Matrix<double> *X, bool training)=0;
     virtual void backward_pass(Matrix<double> *accum_grad, int index)=0;
+    virtual void jacob_backward_pass(Matrix<double> *accum_grad, int index)=0;
+    virtual void jacob_backward_opt_pass(Matrix<double> *accum_grad, int index)=0;
     virtual Shape output_shape()=0;
 };
 class Dense: public Layer {
@@ -44,6 +46,8 @@ public:
     void initialize(string optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
+    void jacob_backward_pass(Matrix<double> *accum_grad, int index) override;
+    void jacob_backward_opt_pass(Matrix<double> *accum_grad, int index) override;
     Shape output_shape() override;
 };
 class Activation: public Layer {
@@ -58,6 +62,8 @@ public:
     void initialize(string optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
+    void jacob_backward_pass(Matrix<double> *accum_grad, int index) override;
+    void jacob_backward_opt_pass(Matrix<double> *accum_grad, int index) override;
     Shape output_shape() override;
 };
 class BatchNormalization: public Layer {
@@ -74,6 +80,8 @@ public:
     void initialize(string optimizer) override;
     Matrix<double> forward_pass(Matrix<double> *X, bool training) override;
     void backward_pass(Matrix<double> *accum_grad, int index) override;
+    void jacob_backward_pass(Matrix<double> *accum_grad, int index) override;
+    void jacob_backward_opt_pass(Matrix<double> *accum_grad, int index) override;
     Shape output_shape() override;
 };
 

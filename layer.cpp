@@ -66,6 +66,15 @@ void Dense::backward_pass(Matrix<double> *accum_grad, int index) {
     }
     *accum_grad = accum_grad->dot(W.calculate_transpose());
 }
+void Dense::jacob_backward_pass(Matrix<double> *accum_grad, int index) {
+    auto W = this->W;
+    if (index == 0) {
+        *accum_grad = accum_grad->dot(W.calculate_transpose());
+    } else {
+        *accum_grad = accum_grad->dot(W.calculate_transpose());
+    }
+}
+
 Shape Dense::output_shape() {
     return Shape (this->n_units, 1);
 }
