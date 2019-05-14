@@ -24,9 +24,7 @@ void NeuralNetwork::add(Layer* layer) {
     if (!this->layers.empty()) {
         layer->set_input_shape(this->layers.back()->output_shape());
     }
-    if (layer->layer_name() == "Dense" || layer->layer_name() == "BatchNormalization") {
-        layer->initialize(this->optimizer);
-    }
+    layer->initialize(this->optimizer);
     this->layers.push_back(layer);
 }
 //double NeuralNetwork::test_on_batch(Matrix<double>* X, Matrix<double>* y) {
@@ -93,6 +91,27 @@ void NeuralNetwork::_backward_pass(Matrix<double>* loss_grad){
 //        trace("    " << (*it)->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
 //        trace("  out(" << loss_grad->get_rows_number() << "," << loss_grad->get_columns_number() << ")");
     }
+    auto jacobian = this->_jacobian();
+    auto jacobian_opt = this->_jacobian_opt();
+}
+Matrix<double> NeuralNetwork::_jacobian() {
+    Matrix<double> batch_loss_grad;
+    int i = 0;
+    for (auto it = this->layers.rbegin(); it != this->layers.rend(); it++) {
+        (*it)->jacob_backward_pass(&batch_loss_grad, i++);
+    }
+    return batch_loss_grad;
+}
+Matrix<double> NeuralNetwork::_jacobian_opt() {
+    Matrix<double> batch_loss_grad;
+    int i = 0;
+    while (!layers[(layers.size()- 1) - i]->latent_layer) {
+        layers[(layers.size()- 1) - i]->jacob_backward_pass(&batch_loss_grad, i++);
+    }
+    while (i<layers.size()-1) {
+        layers[(layers.size()- 1) - i]->jacob_backward_opt_pass(&batch_loss_grad, i++);
+    }
+    return batch_loss_grad;
 }
 void NeuralNetwork::summary(string name) {
     cout << name << endl;

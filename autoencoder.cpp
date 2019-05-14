@@ -22,7 +22,7 @@ class Autoencoder {
     int img_rows = 28;
     int img_cols = 28;
     int img_dim = img_rows * img_cols;
-    int latent_dim = 128;
+    int latent_dim = 16;
 
     string optimizer;
     Loss *loss_function;
@@ -39,7 +39,7 @@ class Autoencoder {
         Dense* dense2 = new Dense(256);
         Activation* act2 = new Activation("leaky_relu");
 //        BatchNormalization* batch2 = new BatchNormalization(0.8);
-        Dense* dense3 = new Dense(this->latent_dim, Shape(this->img_dim, 0), false, true);
+        Dense* dense3 = new Dense(this->latent_dim, Shape(this->img_dim, 1), false, true);
         encoder->add(dense1);
         encoder->add(act1);
 //        encoder->add(batch1);
@@ -99,7 +99,7 @@ public:
         this->X = X;
         this->testX = testX;
         this->loss_function = new SquareLoss();
-        this->optimizer = "adadelta";
+        this->optimizer = "adam";
         NeuralNetwork encoder = this->build_encoder(this->optimizer, this->loss_function);
         NeuralNetwork decoder = this->build_decoder(this->optimizer, this->loss_function);
         autoencoder = new NeuralNetwork(this->optimizer, this->loss_function);
@@ -115,7 +115,6 @@ public:
         this->testX = (this->testX - 127.5) / 127.5;
         Vector<size_t> index_vector(0,1,this->X.get_rows_number());
         for (int epoch = 0; epoch<n_epochs; epoch++) {
-//            index_vector.get_subvector_random(batch_size).print_unique();
             auto random_batch = this->X.get_submatrix_rows(index_vector.get_subvector_random(batch_size));
             auto loss = this->autoencoder->train_on_batch(&random_batch, &random_batch);
             cout << epoch << " [D loss: " << setprecision(6) << loss << "]"<<endl;
@@ -135,5 +134,5 @@ int main (int argc, char **argv) {
     Matrix<double> testX = test_data.get_submatrix_columns(Vector<size_t>(1,1,test_data.get_columns_number()-1));
 
     Autoencoder ae(X, testX);
-    ae.train(200000, 128, 40);
+    ae.train(2000, 50, 40);
 }

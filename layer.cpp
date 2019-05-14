@@ -2,6 +2,7 @@
 // Created by Robbie on 5/4/2019.
 //
 
+#include <chrono>
 #include "layer.h"
 
 #define trace(input) do { if (1) { cout << input << endl; } } while(0)
@@ -19,10 +20,16 @@ Dense::Dense(int n_units, Shape input_shape, bool first_layer, bool latent_layer
     this->latent_layer = latent_layer;
 }
 Dense::Dense(int n_units, Shape input_shape) {
-    Dense(n_units, input_shape, false, false);
+    this->n_units = n_units;
+    this->input_shape = input_shape;
+    this->first_layer = false;
+    this->latent_layer = false;
 }
 Dense::Dense(int n_units) {
-    Dense(n_units, Shape(1, 1), false, false);
+    this->n_units = n_units;
+    this->input_shape = Shape(1, 1);
+    this->first_layer = false;
+    this->latent_layer = false;
 }
 void Dense::initialize(string optimizer) {
     this->trainable = true;
@@ -68,11 +75,17 @@ void Dense::backward_pass(Matrix<double> *accum_grad, int index) {
 }
 void Dense::jacob_backward_pass(Matrix<double> *accum_grad, int index) {
     auto W = this->W;
-    if (index == 0) {
-        *accum_grad = accum_grad->dot(W.calculate_transpose());
+    auto start = chrono::system_clock::now();
+    if (index == 1) {
+        // einsum stuff
     } else {
         *accum_grad = accum_grad->dot(W.calculate_transpose());
     }
+    auto end = chrono::system_clock::now();
+    trace("  " << index << ": " << (chrono::duration<double>(end - start)).count());
+}
+void Dense::jacob_backward_opt_pass(Matrix<double> *accum_grad, int index) {
+
 }
 
 Shape Dense::output_shape() {
@@ -83,6 +96,8 @@ Shape Dense::output_shape() {
 Activation::Activation(string function_name) {
     this->function_name = function_name;
     this ->trainable = true;
+    this->first_layer = false;
+    this->latent_layer = false;
     if (function_name == "sigmoid")
         this->activation_function = new Sigmoid();
     else if (function_name == "tanh")
@@ -100,8 +115,15 @@ Matrix<double> Activation::forward_pass(Matrix<double> *X, bool training) {
     this->layer_input = *X;
     return this->activation_function->function(X);
 }
+
 void Activation::backward_pass(Matrix<double> *accum_grad, int index) {
     *accum_grad = *accum_grad * this->activation_function->gradient(&layer_input);
+}
+void Activation::jacob_backward_pass(Matrix<double> *accum_grad, int index){
+    if (index == 0) {}
+}
+void Activation::jacob_backward_opt_pass(Matrix<double> *accum_grad, int index){
+
 }
 Shape Activation::output_shape() {
     return this->input_shape;
@@ -195,3 +217,5 @@ void BatchNormalization::backward_pass(Matrix<double> *accum_grad, int index) {
 Shape BatchNormalization::output_shape() {
     return this->input_shape;
 }
+void BatchNormalization::jacob_backward_pass(Matrix<double> *accum_grad, int index) {}
+void BatchNormalization::jacob_backward_opt_pass(Matrix<double> *accum_grad, int index) {}

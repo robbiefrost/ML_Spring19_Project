@@ -20,6 +20,7 @@ class Layer {
 public:
     Shape input_shape;
     bool trainable;
+    bool first_layer, latent_layer;
     void set_input_shape(Shape);
     virtual string layer_name()=0;
     virtual int parameters()=0;
@@ -33,14 +34,13 @@ public:
 class Dense: public Layer {
     string name = "Dense";
     int n_units;
-    bool first_layer, latent_layer;
     Matrix<double> layer_input;
     Matrix<double> W, w0;
     Optimizer *W_opt, *w0_opt;
 public:
     Dense(int n_units, Shape, bool first_layer, bool latent_layer);
     Dense(int n_units, Shape input_shape);
-    Dense(int n_units);
+    explicit Dense(int n_units);
     string layer_name() override;
     int parameters() override;
     void initialize(string optimizer) override;

@@ -37,6 +37,8 @@ public:
 //    Matrix<double> fit(Matrix<double>*, Matrix<double>*, int, int);
     Matrix<double> _forward_pass(Matrix<double>*, bool);
     void _backward_pass(Matrix<double>*);
+    Matrix<double> _jacobian();
+    Matrix<double> _jacobian_opt();
     void summary(string);
     Matrix<double> predict(Matrix<double> *X);
 };
