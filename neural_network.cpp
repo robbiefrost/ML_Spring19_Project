@@ -27,19 +27,19 @@ void NeuralNetwork::add(Layer* layer) {
     layer->initialize(this->optimizer);
     this->layers.push_back(layer);
 }
-//double NeuralNetwork::test_on_batch(Matrix<double>* X, Matrix<double>* y) {
-//    Matrix<double> y_pred = this->_forward_pass(X, false);
+//double NeuralNetwork::test_on_batch(xt::xarray<double>* X, xt::xarray<double>* y) {
+//    xt::xarray<double> y_pred = this->_forward_pass(X, false);
 //    auto loss = this->loss_function->loss(y, &y_pred);
 //    //can add in acc if needed
 //    return loss.calculate_mean().calculate_mean();
 //}
-double NeuralNetwork::train_on_batch(Matrix<double>* X, Matrix<double>* y) {
+double NeuralNetwork::train_on_batch(xt::xarray<double>* X, xt::xarray<double>* y) {
 //    auto start = chrono::system_clock::now();
-    Matrix<double> y_pred = this->_forward_pass(X, true);
+    xt::xarray<double> y_pred = this->_forward_pass(X, true);
 //    auto t1 = chrono::system_clock::now();
 //    trace("  fpass   " << (chrono::duration<double>(t1 - start)).count());
 //    y_pred.print_preview();
-    auto loss = this->loss_function->loss(y, &y_pred);
+    double loss = xt::mean(this->loss_function->loss(y, &y_pred))();
 //    auto t2 = chrono::system_clock::now();
 //    trace("  loss    " << (chrono::duration<double>(t2 - t1)).count());
     auto loss_grad = this->loss_function->gradient(y, &y_pred);
@@ -49,29 +49,29 @@ double NeuralNetwork::train_on_batch(Matrix<double>* X, Matrix<double>* y) {
 //    auto t4 = chrono::system_clock::now();
 //    trace("  bpass   " << (chrono::duration<double>(t4 - t3)).count());
     //can add in acc if needed
-    return loss.calculate_mean().calculate_mean();
+    return loss;
 }
-//Matrix<double> NeuralNetwork::fit(Matrix<double>* X, Matrix<double>* y, int n_epochs, int batch_size) {
+//xt::xarray<double> NeuralNetwork::fit(xt::xarray<double>* X, xt::xarray<double>* y, int n_epochs, int batch_size) {
 //    Vector<double> batch_error;
 //    int n_samples = X->get_rows_number();
 //    for (int j = 1; j<=n_epochs; j++) {
 //        int i = 0;
 //        do {
 //            int end = min(i+batch_size-1, n_samples-1);
-//            double loss = this->train_on_batch(X->get_submatrix_rows(i, end),y->get_submatrix_rows(i, end));
+//            double loss = this->train_on_batch(X->get_subxt::xarray_rows(i, end),y->get_subxt::xarray_rows(i, end));
 //            i = i+batch_size;
 //        } while(i<n_samples);
 //    }
-//    return Matrix<double>();
+//    return xt::xarray<double>();
 //}
-Matrix<double> NeuralNetwork::_forward_pass(Matrix<double>* X, bool training) {
-    Matrix<double> layer_output = *X;
+xt::xarray<double> NeuralNetwork::_forward_pass(xt::xarray<double>* X, bool training) {
+    xt::xarray<double> layer_output = *X;
     int i = 0;
     for (auto layer : this->layers) {
 //        trace(endl<<endl<<i++ << ": " << layer->layer_name());
 //        trace("  in (" << layer_output.get_rows_number() << "," << layer_output.get_columns_number() << ")");
 //        auto start = chrono::system_clock::now();
-        layer_output.set(layer->forward_pass(&layer_output, training));
+        layer_output = layer->forward_pass(&layer_output, training);
 //        auto end = chrono::system_clock::now();
 //        trace("    " << layer->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
 //        layer_output.print_preview();
@@ -79,7 +79,7 @@ Matrix<double> NeuralNetwork::_forward_pass(Matrix<double>* X, bool training) {
     }
     return layer_output;
 }
-void NeuralNetwork::_backward_pass(Matrix<double>* loss_grad){
+void NeuralNetwork::_backward_pass(xt::xarray<double>* loss_grad){
     int i = 0;
     for (auto it = this->layers.rbegin(); it != this->layers.rend(); it++) {
 //        trace(i << ": " << (*it)->layer_name());
@@ -94,22 +94,23 @@ void NeuralNetwork::_backward_pass(Matrix<double>* loss_grad){
     auto jacobian = this->_jacobian();
     auto jacobian_opt = this->_jacobian_opt();
 }
-Matrix<double> NeuralNetwork::_jacobian() {
-    Matrix<double> batch_loss_grad;
+xt::xarray<double> NeuralNetwork::_jacobian() {
+    xt::xarray<double> batch_loss_grad;
     int i = 0;
     for (auto it = this->layers.rbegin(); it != this->layers.rend(); it++) {
         (*it)->jacob_backward_pass(&batch_loss_grad, i++);
     }
     return batch_loss_grad;
 }
-Matrix<double> NeuralNetwork::_jacobian_opt() {
-    Matrix<double> batch_loss_grad;
+xt::xarray<double> NeuralNetwork::_jacobian_opt() {
+    xt::xarray<double> batch_loss_grad;
     int i = 0;
-    while (!layers[(layers.size()- 1) - i]->latent_layer) {
-        layers[(layers.size()- 1) - i]->jacob_backward_pass(&batch_loss_grad, i++);
+    int num_layers = layers.size() - 1;
+    while (!layers[num_layers - i]->latent_layer) {
+        layers[num_layers - i]->jacob_backward_pass(&batch_loss_grad, i++);
     }
-    while (i<layers.size()-1) {
-        layers[(layers.size()- 1) - i]->jacob_backward_opt_pass(&batch_loss_grad, i++);
+    while (i<num_layers) {
+        layers[num_layers - i]->jacob_backward_opt_pass(&batch_loss_grad, i++);
     }
     return batch_loss_grad;
 }
@@ -126,6 +127,6 @@ void NeuralNetwork::summary(string name) {
     }
     cout << endl << "Total Parameters: " << total_params << endl << endl;
 }
-Matrix<double> NeuralNetwork::predict(Matrix<double> *X) {
+xt::xarray<double> NeuralNetwork::predict(xt::xarray<double> *X) {
     return this->_forward_pass(X, false);
 }

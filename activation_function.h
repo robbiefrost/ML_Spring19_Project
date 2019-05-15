@@ -5,34 +5,41 @@
 #ifndef ML_SPRING19_PROJECT_ACTIVATION_FUNCTION_H
 #define ML_SPRING19_PROJECT_ACTIVATION_FUNCTION_H
 
-#include "./OpenNN/matrix.h"
+#include <xtensor/xarray.hpp>
+#include <xtensor/xio.hpp>
+#include <xtensor/xmath.hpp>
 
 using namespace std;
-using namespace OpenNN;
 
 class ActivationFunction {
 public:
-    virtual Matrix<double> function(Matrix <double> *x)=0;
-    virtual Matrix<double> gradient(Matrix <double> *x)=0;
+    virtual xt::xarray<double> function(xt::xarray <double> *x)=0;
+    virtual xt::xarray<double> gradient(xt::xarray <double> *x)=0;
 };
 class Sigmoid : public ActivationFunction {
 public:
-    Matrix<double> function(Matrix <double> *x) override;
-    Matrix<double> gradient(Matrix <double> *x) override;
+    xt::xarray<double> function(xt::xarray <double> *x) override;
+    xt::xarray<double> gradient(xt::xarray <double> *x) override;
 };
 class TanH : public ActivationFunction {
 public:
-    Matrix<double> function(Matrix <double> *x) override;
-    Matrix<double> gradient(Matrix <double> *x) override;
+    xt::xarray<double> function(xt::xarray <double> *x) override;
+    xt::xarray<double> gradient(xt::xarray <double> *x) override;
 };
 class LeakyReLU : public ActivationFunction {
 private:
     double alpha=0.2;
 public:
 //    LeakyReLU(double alpha);
-    Matrix<double> function(Matrix <double> *x) override;
-    Matrix<double> gradient(Matrix <double> *x) override;
+    xt::xarray<double> function(xt::xarray <double> *x) override;
+    xt::xarray<double> gradient(xt::xarray <double> *x) override;
 };
+class ReLU : public ActivationFunction {
 
+public:
+//    LeakyReLU(double alpha);
+    xt::xarray<double> function(xt::xarray <double> *x) override;
+    xt::xarray<double> gradient(xt::xarray <double> *x) override;
+};
 
 #endif //ML_SPRING19_PROJECT_ACTIVATION_FUNCTION_H

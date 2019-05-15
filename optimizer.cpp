@@ -14,18 +14,18 @@ Adam::Adam(double learning_rate, double b1, double b2) {
 Adam::Adam() {
     Adam(0.0002, 0.5, 0.999);
 }
-Matrix<double> Adam::update(Matrix<double> *w, Matrix<double> *grad_wrt_w) {
+xt::xarray<double> Adam::update(xt::xarray<double> *w, xt::xarray<double> *grad_wrt_w) {
     if (!this->initialized) {
         this->initialized = true;
-        this->m.set(grad_wrt_w->get_rows_number(), grad_wrt_w->get_columns_number(), 0);
-        this->v.set(grad_wrt_w->get_rows_number(), grad_wrt_w->get_columns_number(), 0);
+        this->m = xt::zeros<double>(w->shape());
+        this->v = xt::zeros<double>(grad_wrt_w->shape());
     }
     this->m = this->m * this->b1 + *grad_wrt_w * (1 - this->b1);
-    this->v = this->v * this->b2 + (*grad_wrt_w * *grad_wrt_w) * (1 - this->b2);
+    this->v = this->v * this->b2 + xt::pow(*grad_wrt_w, 2) * (1 - this->b2);
 
     auto m_hat = this->m / (1 - this->b1);
     auto v_hat = this->v / (1 - this->b2);
-    auto w_updt = (m_hat * this->learning_rate) / (v_hat.calculate_sqrt() + this->eps);
+    auto w_updt = (m_hat * this->learning_rate) / (xt::sqrt(v_hat) + this->eps);
 
     return *w - w_updt;
 }
@@ -37,25 +37,25 @@ Adadelta::Adadelta( double rho, double eps) {
 Adadelta::Adadelta() {
     Adadelta(0.95, 1.0e-6);
 }
-Matrix<double> Adadelta::update(Matrix<double> *w, Matrix<double> *grad_wrt_w) {
+xt::xarray<double> Adadelta::update(xt::xarray<double> *w, xt::xarray<double> *grad_wrt_w) {
     if (!this->initialized) {
         this->initialized = true;
-        this->w_updt.set(w->get_rows_number(), w->get_columns_number(), 0);
-        this->E_w_updt.set(w->get_rows_number(), w->get_columns_number(), 0);
-        this->E_grad.set(grad_wrt_w->get_rows_number(), grad_wrt_w->get_columns_number(), 0);
+        this->w_updt = xt::zeros<double>(w->shape());
+        this->E_w_updt = xt::zeros<double>(w->shape());
+        this->E_grad = xt::zeros<double>(grad_wrt_w->shape());
     }
 
 //    update average gradients at w
-    this->E_grad = this->E_grad * this->rho + (*grad_wrt_w * *grad_wrt_w) * (1 - this->rho);
+    this->E_grad = this->E_grad * this->rho + xt::pow(*grad_wrt_w, 2) * (1 - this->rho);
 
-    auto RMS_delta_w = (this->E_w_updt + this->eps).calculate_sqrt();
-    auto RMS_grad = (this->E_grad + this->eps).calculate_sqrt();
+    auto RMS_delta_w = xt::sqrt(this->E_w_updt + this->eps);
+    auto RMS_grad = xt::sqrt(this->E_grad + this->eps);
 
     auto adaptive_lr = RMS_delta_w / RMS_grad;
 
-    this->w_updt = *grad_wrt_w * adaptive_lr;
+    this->w_updt = adaptive_lr * *grad_wrt_w;
 
-    this->E_w_updt = this->E_w_updt * this->rho + (this->w_updt * this->w_updt) * (1 - this->rho);
+    this->E_w_updt = this->E_w_updt * this->rho + xt::pow(this->w_updt, 2) * (1 - this->rho);
 
     return *w - this->w_updt;
 }

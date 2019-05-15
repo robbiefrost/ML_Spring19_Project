@@ -4,31 +4,38 @@
 
 #include "activation_function.h"
 
-Matrix<double> Sigmoid::function(Matrix<double> *x) {
-    Matrix<double> ones(x->get_rows_number(), x->get_columns_number(), 1.0);
-    auto exp_X = (*x * -1.0).calculate_exp();
-    return ones / (exp_X + 1);
+xt::xarray<double> Sigmoid::function(xt::xarray<double> *x) {
+    return 1 / (1 + xt::exp(-*x));
 }
-Matrix<double> Sigmoid::gradient(Matrix<double> *x) {
+xt::xarray<double> Sigmoid::gradient(xt::xarray<double> *x) {
     auto sig = this->function(x);
-    return sig * ((sig * -1.0) + 1);
+    return sig * (1 - sig);
 }
-Matrix<double> TanH::function(Matrix<double> *x) {
-    Matrix<double> twos(x->get_rows_number(), x->get_columns_number(), 2.0);
-    auto exp_X = (*x * -2.0).calculate_exp();
-    return (twos / (exp_X + 1)) - 1;
+
+
+xt::xarray<double> TanH::function(xt::xarray<double> *x) {
+    return (2 / (1 + xt::exp(-2 * *x))) - 1;
 }
-Matrix<double> TanH::gradient(Matrix<double> *x) {
+xt::xarray<double> TanH::gradient(xt::xarray<double> *x) {
     auto tanh = this->function(x);
-    return (tanh * tanh * -1) + 1;
+    return 1 - xt::pow(tanh, 2);
 }
+
+
 //LeakyReLU::LeakyReLU(double alpha) {
 //    this->alpha = alpha;
 //}
-Matrix<double> LeakyReLU::function(Matrix<double> *x) {
-    //where x >= 0, leave x, otherwise replace with x*alpha
-    return x->calculate_leaky_relu(this->alpha);
+xt::xarray<double> LeakyReLU::function(xt::xarray<double> *x) {
+    return xt::where(*x >= 0, *x, *x * this->alpha);
 }
-Matrix<double> LeakyReLU::gradient(Matrix<double> *x) {
-    return x->calculate_leaky_relu_gradient(this->alpha);
+xt::xarray<double> LeakyReLU::gradient(xt::xarray<double> *x) {
+    return xt::where(*x >= 0, 1, this->alpha);
+}
+
+
+xt::xarray<double> ReLU::function(xt::xarray<double> *x) {
+    return xt::where(*x >= 0, *x, 0);
+}
+xt::xarray<double> ReLU::gradient(xt::xarray<double> *x) {
+    return xt::where(*x >= 0, 1, 0);
 }
