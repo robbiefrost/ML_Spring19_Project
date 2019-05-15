@@ -56,20 +56,22 @@ xt::xarray<double> Dense::forward_pass(xt::xarray<double> *X, bool training) {
 //    trace("    X (" << X->get_rows_number() << "," << X->get_columns_number() << ")");
 //    trace("    W (" << W.get_rows_number() << "," << W.get_columns_number() << ")");
 //    trace("    w0(" << w0.get_rows_number() << "," << w0.get_columns_number() << ")");
-    return xt::linalg::dot(*X, this->W) + this->w0;
-
+//    return xt::linalg::dot(*X, this->W) + this->w0;
+    return *X * this->W + this->w0;
 }
 void Dense::backward_pass(xt::xarray<double> *accum_grad, int index) {
     auto W = xt::transpose(this->W);
     if (this->trainable) {
         // calc gradients w.r.t. layer weights
-        auto grad_W = xt::linalg::dot(xt::transpose(this->layer_input), *accum_grad);
+//        auto grad_W = xt::linalg::dot(xt::transpose(this->layer_input), *accum_grad);
+        xt::xarray<double> grad_W = xt::transpose(this->layer_input) * *accum_grad;
         xt::xarray<double> grad_w0 = xt::sum(*accum_grad, 0);
         // update layer weights
         this->W = this->W_opt->update(&this->W, &grad_W);
         this->w0 = this->w0_opt->update(&this->w0, &grad_w0);
     }
-    *accum_grad = xt::linalg::dot(*accum_grad, W);
+//    *accum_grad = xt::linalg::dot(*accum_grad, W);
+    *accum_grad = *accum_grad * W;
 }
 void Dense::jacob_backward_pass(xt::xarray<double> *accum_grad, int index) {
     auto W = this->W;
@@ -77,7 +79,8 @@ void Dense::jacob_backward_pass(xt::xarray<double> *accum_grad, int index) {
     if (index == 1) {
         // einsum stuff
     } else {
-        *accum_grad = xt::linalg::dot(*accum_grad, xt::transpose(W));
+//        *accum_grad = xt::linalg::dot(*accum_grad, xt::transpose(W));
+        *accum_grad = *accum_grad * xt::transpose(W);
     }
     auto end = chrono::system_clock::now();
     trace("  " << index << ": " << (chrono::duration<double>(end - start)).count());
