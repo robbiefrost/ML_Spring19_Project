@@ -128,12 +128,12 @@ public:
 int main (int argc, char **argv) {
     trace("Loading MNIST data..."<<endl);
     xt::xarray<double> train_data, test_data;
-    ifstream train_file("../mnist_train.csv");
+    ifstream train_file("../data/mnist_train.csv");
     if (train_file.is_open()) {
         train_data = xt::load_csv<double>(train_file);
         train_file.close();
     }
-    ifstream test_file("../mnist_test.csv");
+    ifstream test_file("../data/mnist_test.csv");
     if (test_file.is_open()) {
         test_data = xt::load_csv<double>(train_file);
         test_file.close();
