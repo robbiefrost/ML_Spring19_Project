@@ -73,23 +73,28 @@ class Autoencoder {
         int rows = 5;
         auto index = xt::random::randint<int>({rows*rows,1}, 0, X.shape(0));
         xt::xarray<double> images = xt::view(X, xt::keep(index), xt::all());
-        auto gen_images = this->autoencoder->predict(&images);
+        xt::xarray<double> gen_images = this->autoencoder->predict(&images);
 //        gen_images.reshape({-1, this->img_rows, this->img_cols});
         gen_images = (gen_images * -127.5) + 127.5;
+//        trace(gen_images);
 
-//        string file_name = "../image_predictions/ae_" + to_string(epoch) + ".pgm";
-//        ofstream image_file(file_name, ofstream::out | ofstream::trunc);
-//        if (image_file.is_open()) {
-//            image_file << "P2\r\n";
-//            image_file << this->img_rows << " " << this->img_cols << "\r\n";
-//            image_file << "255\r\n";
-//            auto idx = xt::ravel_indices<xt::ravel_vector_tag>(xt::argwhere(a >= 6), a.shape());
-//            auto image = gen_images.get_row(0);
-//            for (int i = 0; i< this->img_dim-1; i+=this->img_rows) {
-//                image_file << image.get_subvector(i, i+this->img_cols-1) << "\r\n";
-//            }
-//            image_file.close();
-//        }
+        string file_name = "../image_predictions/ae_" + to_string(epoch) + ".pgm";
+        ofstream image_file(file_name, ofstream::out | ofstream::trunc);
+        if (image_file.is_open()) {
+            image_file << "P2\r\n";
+            image_file << this->img_rows << " " << this->img_cols << "\r\n";
+            image_file << "255\r\n";
+            xt::xarray<double> image = xt::view(gen_images, xt::keep(0), xt::all());
+            image.reshape({this->img_rows, this->img_cols});
+//            for (int x=0; x<rows*rows)
+            for (int i = 0; i< this->img_rows-1; i++) {
+                for (int j = 0; j<this->img_cols-1; j++) {
+                    image_file << image(i,j) << " ";
+                }
+                image_file << "\r\n";
+            }
+            image_file.close();
+        }
 
 
     }
@@ -135,12 +140,13 @@ int main (int argc, char **argv) {
     }
     ifstream test_file("../data/mnist_test.csv");
     if (test_file.is_open()) {
-        test_data = xt::load_csv<double>(train_file);
+        test_data = xt::load_csv<double>(test_file);
         test_file.close();
     }
-
-    xt::xarray<double> X = xt::view(train_data, xt::range(1,_), xt::all());
-    xt::xarray<double> testX = xt::view(test_data, xt::range(1,_), xt::all());
+    xt::xarray<double> X = xt::view(train_data, xt::all(), xt::range(1,_));
+    xt::xarray<double> testX = xt::view(test_data, xt::all(), xt::range(1,_));
+//    trace("(" << X.shape(0) << "," << X.shape(1) << ")");
+//    trace("(" << testX.shape(0) << "," << testX.shape(1) << ")");
 
     Autoencoder ae(X, testX);
     ae.train(2000, 50, 40);

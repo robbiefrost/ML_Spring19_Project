@@ -36,18 +36,17 @@ void NeuralNetwork::add(Layer* layer) {
 double NeuralNetwork::train_on_batch(xt::xarray<double>* X, xt::xarray<double>* y) {
 //    auto start = chrono::system_clock::now();
     xt::xarray<double> y_pred = this->_forward_pass(X, true);
-//    auto t1 = chrono::system_clock::now();
-//    trace("  fpass   " << (chrono::duration<double>(t1 - start)).count());
-//    y_pred.print_preview();
+    auto t1 = chrono::system_clock::now();
+//    trace(" fpass: " << (chrono::duration<double>(t1 - start)).count());
     double loss = xt::mean(this->loss_function->loss(y, &y_pred))();
-//    auto t2 = chrono::system_clock::now();
-//    trace("  loss    " << (chrono::duration<double>(t2 - t1)).count());
+    auto t2 = chrono::system_clock::now();
+//    trace(" loss:  " << (chrono::duration<double>(t2 - t1)).count());
     auto loss_grad = this->loss_function->gradient(y, &y_pred);
-//    auto t3 = chrono::system_clock::now();
-//    trace("  lgrad   " << (chrono::duration<double>(t3 - t2)).count());
+    auto t3 = chrono::system_clock::now();
+//    trace(" lgrad: " << (chrono::duration<double>(t3 - t2)).count());
     this->_backward_pass(&loss_grad);
-//    auto t4 = chrono::system_clock::now();
-//    trace("  bpass   " << (chrono::duration<double>(t4 - t3)).count());
+    auto t4 = chrono::system_clock::now();
+//    trace(" bpass: " << (chrono::duration<double>(t4 - t3)).count());
     //can add in acc if needed
     return loss;
 }
@@ -68,13 +67,12 @@ xt::xarray<double> NeuralNetwork::_forward_pass(xt::xarray<double>* X, bool trai
     xt::xarray<double> layer_output = *X;
     int i = 0;
     for (auto layer : this->layers) {
-//        trace(endl<<endl<<i++ << ": " << layer->layer_name());
+//        trace(endl<<i++ << ": " << layer->layer_name());
 //        trace("  in (" << layer_output.get_rows_number() << "," << layer_output.get_columns_number() << ")");
 //        auto start = chrono::system_clock::now();
         layer_output = layer->forward_pass(&layer_output, training);
 //        auto end = chrono::system_clock::now();
-//        trace("    " << layer->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
-//        layer_output.print_preview();
+//        trace("   " << i++ << ": "  << layer->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
 //        trace("  out(" << layer_output.get_rows_number() << "," << layer_output.get_columns_number() << ")");
     }
     return layer_output;
@@ -86,19 +84,23 @@ void NeuralNetwork::_backward_pass(xt::xarray<double>* loss_grad){
 //        trace("  in (" << loss_grad->get_rows_number() << "," << loss_grad->get_columns_number() << ")");
 //        auto start = chrono::system_clock::now();
         (*it)->backward_pass(loss_grad, i);
-        i++;
 //        auto end = chrono::system_clock::now();
-//        trace("    " << (*it)->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
+//        trace("   " << i << ": " << (*it)->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
 //        trace("  out(" << loss_grad->get_rows_number() << "," << loss_grad->get_columns_number() << ")");
+        i++;
     }
-    auto jacobian = this->_jacobian();
-    auto jacobian_opt = this->_jacobian_opt();
+//    this->_jacobian();
+//    this->_jacobian_opt();
 }
 xt::xarray<double> NeuralNetwork::_jacobian() {
     xt::xarray<double> batch_loss_grad;
     int i = 0;
+    trace("  Jacobian");
     for (auto it = this->layers.rbegin(); it != this->layers.rend(); it++) {
-        (*it)->jacob_backward_pass(&batch_loss_grad, i++);
+        auto start = chrono::system_clock::now();
+        (*it)->jacob_backward_pass(&batch_loss_grad, i);
+        auto end = chrono::system_clock::now();
+        trace("   " << i++ << ": " << (*it)->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
     }
     return batch_loss_grad;
 }
@@ -106,11 +108,20 @@ xt::xarray<double> NeuralNetwork::_jacobian_opt() {
     xt::xarray<double> batch_loss_grad;
     int i = 0;
     int num_layers = layers.size() - 1;
+    trace("  Optimal Jacobian");
     while (!layers[num_layers - i]->latent_layer) {
-        layers[num_layers - i]->jacob_backward_pass(&batch_loss_grad, i++);
+        auto start = chrono::system_clock::now();
+        layers[num_layers - i]->jacob_backward_pass(&batch_loss_grad, i);
+        auto end = chrono::system_clock::now();
+        trace("   " << i << ": " << layers[num_layers - i]->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
+        i++;
     }
     while (i<num_layers) {
-        layers[num_layers - i]->jacob_backward_opt_pass(&batch_loss_grad, i++);
+        auto start = chrono::system_clock::now();
+        layers[num_layers - i]->jacob_backward_opt_pass(&batch_loss_grad, i);
+        auto end = chrono::system_clock::now();
+        trace("   " << i++ << ": " << layers[num_layers - i]->layer_name()<< "  " << (chrono::duration<double>(end - start)).count());
+        i++;
     }
     return batch_loss_grad;
 }

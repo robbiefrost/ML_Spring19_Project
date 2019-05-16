@@ -25,6 +25,7 @@ public:
     bool trainable;
     bool first_layer, latent_layer;
     void set_input_shape(Shape);
+    xt::xarray<double> dot(xt::xarray<double> *a, xt::xarray<double> *b);
     virtual string layer_name()=0;
     virtual int parameters()=0;
     virtual void initialize(string optimizer)=0;
